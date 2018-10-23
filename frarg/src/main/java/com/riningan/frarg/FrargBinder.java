@@ -155,7 +155,7 @@ public class FrargBinder {
             return bundle.getFloatArray(argName);
         } else if (type == int[].class) {
             return bundle.getIntArray(argName);
-        } else if (type == float[].class) {
+        } else if (type == long[].class) {
             return bundle.getLongArray(argName);
         } else if (type == short[].class) {
             return bundle.getShortArray(argName);

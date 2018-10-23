@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 27
@@ -7,7 +8,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName 'library.version'
 
     }
 
@@ -27,4 +28,24 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:appcompat-v7:$support_version"
     implementation project(':frarg-annotations')
+}
+
+bintray {
+    user = 'bintray.user'
+    key = 'bintray.apikey'
+    configurations = ['archives']
+    override = true
+    pkg {
+        repo = 'AndroidMaven'
+        name = 'Frarg'
+        userOrg = 'riningan.com'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/Riningan/Frarg.git'
+        version {
+            name = 'library.version'
+            released  = new Date()
+            vcsTag = 'library.version'
+        }
+        publish = true
+    }
 }

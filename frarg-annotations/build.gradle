@@ -1,7 +1,26 @@
 apply plugin: 'java-library'
+apply plugin: 'com.jfrog.bintray'
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
 
 dependencies {
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+bintray {
+    user = 'bintray.user'
+    key = 'bintray.apikey'
+    pkg {
+        repo = 'AndroidMaven'
+        name = 'Frarg-annotations'
+        userOrg = 'riningan.com'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/Riningan/Frarg.git'
+        version {
+            name = 'library.version'
+            released  = new Date()
+            vcsTag = 'library.version'
+        }
+        publish = true
+    }
+}
