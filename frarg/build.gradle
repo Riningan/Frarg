@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 27
@@ -8,7 +7,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 27
         versionCode 1
-        versionName 'library.version'
+        versionName project.property('library.version')
 
     }
 
@@ -22,6 +21,22 @@ android {
 
 ext {
     support_version = '27.1.1'
+
+    bintrayRepo = 'AndroidMaven'
+    bintrayName = 'Frarg'
+    publishedGroupId = project.property('library.publishedGroupId')
+    libraryName = 'Frarg'
+    artifact = 'frarg'
+    libraryDescription = 'New fragment instance generator library.'
+    siteUrl = project.property('library.siteUrl')
+    gitUrl = project.property('library.gitUrl')
+    libraryVersion = project.property('library.version')
+    developerId = project.property('library.developerId')
+    developerName = project.property('library.developerName')
+    developerEmail = project.property('library.developerEmail')
+    licenseName = project.property('library.licenseName')
+    licenseUrl = project.property('library.licenseUrl')
+    allLicenses = project.property('library.allLicenses')
 }
 
 dependencies {
@@ -30,22 +45,5 @@ dependencies {
     implementation project(':frarg-annotations')
 }
 
-bintray {
-    user = 'bintray.user'
-    key = 'bintray.apikey'
-    configurations = ['archives']
-    override = true
-    pkg {
-        repo = 'AndroidMaven'
-        name = 'Frarg'
-        userOrg = 'riningan.com'
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/Riningan/Frarg.git'
-        version {
-            name = 'library.version'
-            released  = new Date()
-            vcsTag = 'library.version'
-        }
-        publish = true
-    }
-}
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
