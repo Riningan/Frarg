@@ -5,7 +5,7 @@ New fragment instance generator
 How it works
 ---
 
-This library generate final class with static "newInstance" methods.
+This library generate final class with static *"newInstance"* methods.
 
 For example: 
 
@@ -15,7 +15,7 @@ You have **FooFragment** class. *Frarg* generate static method **newFooFragmentI
 How to use it
 ---
 
-### 1. Add dependency
+## 1. Add dependency
 
 ```groovy
 dependencies {
@@ -25,9 +25,9 @@ dependencies {
 }
 ```
 
-### 2. Add annotations
+## 2. Add annotations
 
-#### Fragment without arguments
+### Fragment without arguments
 
 Add **@ArgumentedFragment()** annotation to fragment class.
 
@@ -47,7 +47,7 @@ public static FooFragment newFooFragmentInstance() {
 }
 ```
 
-#### Fragment with arguments
+### Fragment with arguments
 
 Add **@ArgumentedFragment()** annotation to fragment class.
 
@@ -112,7 +112,7 @@ public void onAttach(Context context) {
 }
 ```
 
-#### Fragment with arguments, but arguments declared in another class
+### Fragment with arguments, but arguments declared in another class
 
 Add **@ArgumentedFragment()** annotation to class which contain declared arguments fileds.
 
@@ -165,15 +165,15 @@ public class FooPresenter {
 }
 ```
 
-### 3. Using
+## 3. Using
 
-#### Fragment without arguments
+### Fragment without arguments
 
 ```java
 FragmentBuilder.newFooFragmentInstance();
 ```
 
-#### Fragment with arguments
+### Fragment with arguments
 
 ```java
 FragmentBuilder.newFooFragmentInstance("param", 101)
