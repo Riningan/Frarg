@@ -32,7 +32,7 @@ dependencies {
 Add **@ArgumentedFragment()** annotation to fragment class.
 
 ```java
-@ArgumentedFragment()
+@ArgumentedFragment
 public class FooFragment extends Fragment {}
 ```
 
@@ -54,7 +54,7 @@ Add **@ArgumentedFragment()** annotation to fragment class.
 Add **@Argument** annotation to field which will be argument.
 
 ```java
-@ArgumentedFragment()
+@ArgumentedFragment
 public class FooFragment extends Fragment {
     @Argument
     String mArgumentString = null;
@@ -105,7 +105,7 @@ Where **this** is **FooFragment** instance.
 For example:
 
 ```java
-@ArgumentedFragment()
+@ArgumentedFragment
 public class FooFragment extends Fragment {
     ...
     @Override 
