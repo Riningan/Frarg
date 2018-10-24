@@ -90,7 +90,7 @@ public static FooFragment newFooFragmentInstance(String mArgumentString, int mAr
 }
 
 public static FooFragment newFooFragmentInstance(FooFragmentArgs args) {
-    return newFragmentBInstance(args.mArgumentString, args.mArgumentInt);
+    return newFooFragmentInstance(args.mArgumentString, args.mArgumentInt);
 }
 ```
 
