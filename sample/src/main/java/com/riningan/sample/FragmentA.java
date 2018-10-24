@@ -11,7 +11,8 @@ import android.view.ViewGroup;
 
 import com.riningan.frarg.annotations.ArgumentedFragment;
 
-@ArgumentedFragment()
+
+@ArgumentedFragment
 public class FragmentA extends Fragment {
     @Override
     public void onAttach(Context context) {

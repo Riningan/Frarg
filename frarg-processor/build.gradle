@@ -6,23 +6,21 @@ targetCompatibility = "1.7"
 ext {
     support_version = '27.1.1'
 
-    ext {
-        bintrayRepo = 'AndroidMaven'
-        bintrayName = 'Frarg-processor'
-        publishedGroupId = project.property('library.publishedGroupId')
-        libraryName = 'Frarg-processor'
-        artifact = 'frarg-processor'
-        libraryDescription = 'New fragment instance generator processor.'
-        siteUrl = project.property('library.siteUrl')
-        gitUrl = project.property('library.gitUrl')
-        libraryVersion = project.property('library.version')
-        developerId = project.property('library.developerId')
-        developerName = project.property('library.developerName')
-        developerEmail = project.property('library.developerEmail')
-        licenseName = project.property('library.licenseName')
-        licenseUrl = project.property('library.licenseUrl')
-        allLicenses = project.property('library.allLicenses')
-    }
+    bintrayRepo = 'AndroidMaven'
+    bintrayName = 'Frarg-processor'
+    publishedGroupId = project.property('library.publishedGroupId')
+    libraryName = 'Frarg-processor'
+    artifact = 'frarg-processor'
+    libraryDescription = 'New fragment instance generator processor.'
+    siteUrl = project.property('library.siteUrl')
+    gitUrl = project.property('library.gitUrl')
+    libraryVersion = project.property('library.version')
+    developerId = project.property('library.developerId')
+    developerName = project.property('library.developerName')
+    developerEmail = project.property('library.developerEmail')
+    licenseName = project.property('library.licenseName')
+    licenseUrl = project.property('library.licenseUrl')
+    allLicenses = project.property('library.allLicenses')
 }
 
 dependencies {

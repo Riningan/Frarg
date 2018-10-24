@@ -60,32 +60,28 @@ public class FrargProcessor extends AbstractProcessor {
         ArrayList<MethodSpec> methods = new ArrayList<>();
         Set<? extends Element> fragmentElements = roundEnvironment.getElementsAnnotatedWith(ArgumentedFragment.class);
         for (Element fragmentElement : fragmentElements) {
-            // collect arguments
-            ArrayList<Element> fragmentArgs = new ArrayList<>();
-            for (Element subFragmentElement : fragmentElement.getEnclosedElements()) {
-                if (subFragmentElement.getAnnotation(Argument.class) != null) {
-                    fragmentArgs.add(subFragmentElement);
-                }
-            }
-            // create newInstance method
-            ClassName fragmentClassName = getFragmentClassName(fragmentElement);
             try {
-                methods.add(createNewInstanceMethodWithAllArgs(fragmentClassName, fragmentArgs));
-            } catch (BadArgException e) {
+                // collect arguments
+                ArrayList<Element> fragmentArgs = new ArrayList<>();
+                for (Element subFragmentElement : fragmentElement.getEnclosedElements()) {
+                    if (subFragmentElement.getAnnotation(Argument.class) != null) {
+                        fragmentArgs.add(subFragmentElement);
+                    }
+                }
+                FragmentFields fragmentFields = parseFragmentElement(fragmentElement);
+                ClassName fragmentClassName = fragmentFields.className;
+                String fragmentAlias = fragmentFields.alias;
+                // create newInstance method
+                methods.add(createNewInstanceMethodWithAllArgs(fragmentClassName, fragmentAlias, fragmentArgs));
+                if (fragmentArgs.size() > 0) {
+                    // create arg class
+                    createArgClass(fragmentArgs, fragmentAlias);
+                    // create newInstance method with arg class
+                    methods.add(createNewInstanceMethodWithArgClass(fragmentClassName, fragmentAlias, fragmentArgs));
+                }
+            } catch (BadAliasException | IOException | BadArgException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
                 return false;
-            }
-
-            if (fragmentArgs.size() > 0) {
-                // create arg class
-                try {
-                    createArgClass(fragmentArgs, fragmentClassName.simpleName());
-                } catch (IOException e) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-                    return false;
-                }
-                // create newInstance method with arg class
-                methods.add(createNewInstanceMethodWithArgClass(fragmentClassName, fragmentArgs));
             }
         }
         // create builder class
@@ -102,26 +98,30 @@ public class FrargProcessor extends AbstractProcessor {
         return true;
     }
 
-    private ClassName getFragmentClassName(Element fragmentElement) {
+    private FragmentFields parseFragmentElement(Element fragmentElement) throws BadAliasException {
         String argumentedCls = fragmentElement.getAnnotation(ArgumentedFragment.class).toString();
-        Pattern p = Pattern.compile("@" + ArgumentedFragment.class.getCanonicalName() + "\\(fragmentCls=" + "(.*)\\.(.*)\\)");
+        Pattern p = Pattern.compile("@" + ArgumentedFragment.class.getCanonicalName() + "\\(alias=(.*), fragmentClass=" + "(.*)\\.(.*)\\)");
         Matcher matcher = p.matcher(argumentedCls);
         matcher.find();
-        String argumentedClsPackage = matcher.group(1);
-        String argumentedClsSimple = matcher.group(2);
-        if (argumentedClsPackage.equals("java.lang") && argumentedClsSimple.equals("Object")) {
-            return ClassName.get((TypeElement) fragmentElement);
+        String argumentedClassAlias = matcher.group(1);
+        String argumentedClassPackage = matcher.group(2);
+        String argumentedClassSimple = matcher.group(3);
+        if (argumentedClassAlias.length() > 0 && !argumentedClassAlias.matches("[a-zA-Z][a-zA-Z0-9]*")) {
+            throw new BadAliasException(argumentedClassAlias, fragmentElement);
+        }
+        if (argumentedClassPackage.equals("java.lang") && argumentedClassSimple.equals("Object")) {
+            return new FragmentFields(ClassName.get((TypeElement) fragmentElement), argumentedClassAlias);
         } else {
-            return ClassName.get(argumentedClsPackage, argumentedClsSimple);
+            return new FragmentFields(ClassName.get(argumentedClassPackage, argumentedClassSimple), argumentedClassAlias);
         }
     }
 
 
-    private MethodSpec createNewInstanceMethodWithArgClass(ClassName fragmentClassName, ArrayList<Element> fragmentArgs) {
-        String newInstanceMethodName = "new" + fragmentClassName.simpleName() + "Instance";
+    private MethodSpec createNewInstanceMethodWithArgClass(ClassName fragmentClassName, String fragmentAlias, ArrayList<Element> fragmentArgs) {
+        String newInstanceMethodName = "new" + fragmentAlias + "Instance";
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(newInstanceMethodName)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addParameter(ClassName.get(PACKAGE_NAME, fragmentClassName.simpleName() + "Args"), "args")
+                .addParameter(ClassName.get(PACKAGE_NAME, fragmentAlias + "Args"), "args")
                 .returns(fragmentClassName);
         methodBuilder.addCode("return $N(", newInstanceMethodName);
         for (int i = 0; i < fragmentArgs.size(); i++) {
@@ -136,8 +136,8 @@ public class FrargProcessor extends AbstractProcessor {
         return methodBuilder.build();
     }
 
-    private MethodSpec createNewInstanceMethodWithAllArgs(ClassName fragmentClassName, ArrayList<Element> fragmentArgs) throws BadArgException {
-        String newInstanceMethodName = "new" + fragmentClassName.simpleName() + "Instance";
+    private MethodSpec createNewInstanceMethodWithAllArgs(ClassName fragmentClassName, String fragmentAlias, ArrayList<Element> fragmentArgs) throws BadArgException {
+        String newInstanceMethodName = "new" + fragmentAlias + "Instance";
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(newInstanceMethodName)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(fragmentClassName);

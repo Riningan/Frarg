@@ -9,8 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.riningan.frarg.annotations.Argument;
-import com.riningan.frarg.annotations.ArgumentedFragment;
 
 public class FragmentC extends Fragment {
     PresenterC presenter = new PresenterC();

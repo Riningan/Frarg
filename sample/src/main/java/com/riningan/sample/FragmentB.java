@@ -14,7 +14,8 @@ import com.riningan.frarg.FrargBinder;
 import com.riningan.frarg.annotations.Argument;
 import com.riningan.frarg.annotations.ArgumentedFragment;
 
-@ArgumentedFragment()
+
+@ArgumentedFragment
 public class FragmentB extends Fragment {
     @Argument
     String mArgumentString = null;

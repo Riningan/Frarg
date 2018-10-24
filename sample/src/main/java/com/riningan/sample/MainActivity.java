@@ -8,8 +8,10 @@ import android.view.View;
 
 import com.riningan.frarg.processor.FragmentBuilder;
 import com.riningan.frarg.processor.FragmentCArgs;
+import com.riningan.frarg.processor.FragmentNotDArgs;
 
 import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn1).setOnClickListener(this);
         findViewById(R.id.btn2).setOnClickListener(this);
         findViewById(R.id.btn3).setOnClickListener(this);
+        findViewById(R.id.btn4).setOnClickListener(this);
     }
 
     @Override
@@ -39,6 +42,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 strs.add("second");
                 FragmentCArgs fragmentCArgs = new FragmentCArgs(strs, 1020);
                 fragment = FragmentBuilder.newFragmentCInstance(fragmentCArgs);
+                break;
+            case R.id.btn4:
+                fragment = FragmentBuilder.newFragmentNotDInstance(new FragmentNotDArgs("param", 101));
                 break;
             default:
                 return;

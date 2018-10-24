@@ -4,6 +4,7 @@ import com.squareup.javapoet.ClassName;
 
 import javax.lang.model.element.Element;
 
+
 public class BadArgException extends Exception {
     private Element mArgElement;
 
