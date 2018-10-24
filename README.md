@@ -105,10 +105,14 @@ Where **this** is **FooFragment** instance.
 For example:
 
 ```java
-@Override 
-public void onAttach(Context context) {
-    super.onAttach(context);
-    FrargBinder.bind(this);
+@ArgumentedFragment()
+public class FooFragment extends Fragment {
+    ...
+    @Override 
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        FrargBinder.bind(this);
+    }
 }
 ```
 
