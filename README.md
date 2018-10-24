@@ -19,9 +19,9 @@ How to use it
 
 ```groovy
 dependencies {
-	implementation 'com.riningan.frarg:frarg:0.9'
-	implementation 'com.riningan.frarg:frarg-annotations:0.9'
-	annotationProcessor 'com.riningan.frarg:frarg-processor:0.9'
+	implementation 'com.riningan.frarg:frarg:0.9.1'
+	implementation 'com.riningan.frarg:frarg-annotations:0.9.1'
+	annotationProcessor 'com.riningan.frarg:frarg-processor:0.9.1'
 }
 ```
 
@@ -121,7 +121,7 @@ Add fragment class name to **fragmentCls** parameter in **@ArgumentedFragment()*
 Add **@Argument** annotation to field which will be argument.
 
 ```java
-@ArgumentedFragment(fragmentCls = FooFragment.class)
+@ArgumentedFragment(fragmentClass = FooFragment.class)
 public class FooPresenter {
     @Argument
     ArrayList<String> mPresenterArgumentString = null;
@@ -156,7 +156,7 @@ public class FooFragment extends Fragment {
 ```
 
 ```java
-@ArgumentedFragment(fragmentCls = FooFragment.class)
+@ArgumentedFragment(fragmentClass = FooFragment.class)
 public class FooPresenter {
     ...
     public void bind(Bundle bundle) {
@@ -186,12 +186,36 @@ FragmentBuilder.newFooFragmentInstance(new FooFragmentArgs("param", 101));
 ```
 
 
+Aliases
+---
+
+If you have two fragment class with same name in different packages, you need use alias:
+
+```kotlin
+@ArgumentedFragment(alias = "FragmentNotD")
+class FragmentD : Fragment() {
+}
+```
+
+In this case *Frarg* generate method:
+
+```java
+public static FragmentD newFragmentNotDInstance() {
+    FragmentD fragment = new FragmentD();
+    android.os.Bundle bundle = new android.os.Bundle();
+    fragment.setArguments(bundle);
+    return fragment;
+}
+```
+
+
 Supported argument types
 ---
 
 All types which can be putting to bundle.
 
 https://developer.android.com/reference/android/os/Bundle
+
 
 LICENCE
 -----
