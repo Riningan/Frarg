@@ -19,9 +19,9 @@ How to use it
 
 ```groovy
 dependencies {
-	implementation 'com.riningan.frarg:frarg:0.9.1'
-	implementation 'com.riningan.frarg:frarg-annotations:0.9.1'
-	annotationProcessor 'com.riningan.frarg:frarg-processor:0.9.1'
+    implementation 'com.riningan.frarg:frarg:0.9.1'
+    implementation 'com.riningan.frarg:frarg-annotations:0.9.1'
+    annotationProcessor 'com.riningan.frarg:frarg-processor:0.9.1'
 }
 ```
 
