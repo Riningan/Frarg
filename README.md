@@ -19,9 +19,9 @@ How to use it
 
 ```groovy
 dependencies {
-    implementation 'com.riningan.frarg:frarg:0.9.1'
-    implementation 'com.riningan.frarg:frarg-annotations:0.9.1'
-    annotationProcessor 'com.riningan.frarg:frarg-processor:0.9.1'
+    implementation 'com.riningan.frarg:frarg:1.0'
+    implementation 'com.riningan.frarg:frarg-annotations:1.0'
+    annotationProcessor 'com.riningan.frarg:frarg-processor:1.0'
 }
 ```
 
@@ -165,6 +165,22 @@ public class FooPresenter {
 }
 ```
 
+Or call **FrargBinder.bind** in fragment class.
+
+For example:
+
+```java
+public class FooFragment extends Fragment {
+    FooPresenter presenter = new FooPresenter();
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        FrargBinder.bind(presenter, getArguments());
+    }
+}
+```
+
 ## 3. Using
 
 ### Fragment without arguments
@@ -215,6 +231,17 @@ Supported argument types
 All types which can be putting to bundle.
 
 https://developer.android.com/reference/android/os/Bundle
+
+And Enum classes:
+
+```java
+public enum ArgEnum {
+    FIRST, SECOND, THIRD
+}
+
+@Argument
+ArgEnum mArgumentEnum = null;
+```
 
 
 LICENCE
