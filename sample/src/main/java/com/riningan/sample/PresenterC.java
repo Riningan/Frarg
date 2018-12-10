@@ -12,7 +12,7 @@ import java.util.ArrayList;
 @ArgumentedFragment(fragmentClass = FragmentC.class)
 public class PresenterC {
     @Argument
-    ArrayList<String> mPresenterArgumentString = null;
+    ArrayList<String> mPresenterArgumentArrayListString = null;
 
     @Argument
     int mPresenterArgumentInt = 0;

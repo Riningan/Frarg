@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 fragment = FragmentBuilder.newFragmentAInstance();
                 break;
             case R.id.btn2:
-                fragment = FragmentBuilder.newFragmentBInstance("param", 101);
+                fragment = FragmentBuilder.newFragmentBInstance("param", 101, ArgEnum.THIRD);
                 break;
             case R.id.btn3:
                 ArrayList<String> strs = new ArrayList<>();
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 fragment = FragmentBuilder.newFragmentCInstance(fragmentCArgs);
                 break;
             case R.id.btn4:
-                fragment = FragmentBuilder.newFragmentNotDInstance(new FragmentNotDArgs("param", 101));
+                fragment = FragmentBuilder.newFragmentNotDInstance(new FragmentNotDArgs("param", 101, FragmentD.Arg.FIRST));
                 break;
             default:
                 return;
