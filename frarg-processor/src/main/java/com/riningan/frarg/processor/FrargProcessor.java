@@ -26,6 +26,7 @@ import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
@@ -147,8 +148,13 @@ public class FrargProcessor extends AbstractProcessor {
         methodBuilder.addStatement("$T fragment = new $T()", fragmentClassName, fragmentClassName)
                 .addStatement("android.os.Bundle bundle = new android.os.Bundle()");
         for (Element fragmentArg : fragmentArgs) {
+            String[] arg = addArg(fragmentArg);
             String argName = fragmentArg.getSimpleName().toString();
-            methodBuilder.addStatement(addArg(fragmentArg), argName, argName);
+            if (arg.length == 1) {
+                methodBuilder.addStatement(arg[0], argName, argName);
+            } else {
+                methodBuilder.addStatement(arg[0], argName, argName + arg[1]);
+            }
         }
         methodBuilder.addStatement("fragment.setArguments(bundle)")
                 .addStatement("return fragment");
@@ -190,43 +196,47 @@ public class FrargProcessor extends AbstractProcessor {
     }
 
 
-    private String addArg(Element argElement) throws BadArgException {
+    private String[] addArg(Element argElement) throws BadArgException {
         if (argElement.asType().getKind().isPrimitive()) {
-            return addPrimitiveArg(argElement);
+            return new String[]{addPrimitiveArg(argElement)};
         } else if (argElement.asType().getKind() == TypeKind.ARRAY) {
-            return addArrayArg(argElement);
+            return new String[]{addArrayArg(argElement)};
         } else if (ClassName.get(argElement.asType()).toString().startsWith(ArrayList.class.getCanonicalName())) {
-            return addArrayListArg(argElement);
+            return new String[]{addArrayListArg(argElement)};
         } else if (ClassName.get(argElement.asType()).toString().startsWith("android.util.SparseArray")) {
-            return addSparseArrayArg(argElement);
+            return new String[]{addSparseArrayArg(argElement)};
         }
         String argClassName = ClassName.get(argElement.asType()).toString();
         if (argClassName.equals(CharSequence.class.getCanonicalName())) {
-            return "bundle.putCharSequence($S, $L)";
+            return new String[]{"bundle.putCharSequence($S, $L)"};
         } else if (argClassName.equals(String.class.getCanonicalName())) {
-            return "bundle.putString($S, $L)";
+            return new String[]{"bundle.putString($S, $L)"};
         } else if (argClassName.equals(Serializable.class.getCanonicalName())) {
-            return "bundle.putSerializable($S, $L)";
+            return new String[]{"bundle.putSerializable($S, $L)"};
         } else if (argClassName.equals("android.os.Bundle")) {
-            return "bundle.putBundle($S, $L)";
+            return new String[]{"bundle.putBundle($S, $L)"};
         } else if (argClassName.equals("android.util.Size")) {
-            return "bundle.putSize($S, $L)";
+            return new String[]{"bundle.putSize($S, $L)"};
         } else if (argClassName.equals("android.util.SizeF")) {
-            return "bundle.putSizeF($S, $L)";
+            return new String[]{"bundle.putSizeF($S, $L)"};
         } else if (argClassName.equals("android.os.IBinder")) {
-            return "bundle.putBinder($S, $L)";
+            return new String[]{"bundle.putBinder($S, $L)"};
         } else if (argClassName.equals("android.os.Parcelable")) {
-            return "bundle.putParcelable($S, $L)";
+            return new String[]{"bundle.putParcelable($S, $L)"};
         } else if (argElement.asType().getKind() == TypeKind.DECLARED) {
             DeclaredType declaredType = (DeclaredType) argElement.asType();
             TypeElement argClass = (TypeElement) declaredType.asElement();
-            for (TypeMirror interfaceTypeMirror : argClass.getInterfaces()) {
-                if (interfaceTypeMirror.toString().equals("android.os.Parcelable")) {
-                    return "bundle.putParcelable($S, $L)";
-                } else if (interfaceTypeMirror.toString().equals(Serializable.class.getCanonicalName())) {
-                    return "bundle.putSerializable($S, $L)";
-                } else if (interfaceTypeMirror.toString().equals("android.os.IBinder")) {
-                    return "bundle.putBinder($S, $L)";
+            if (argClass.getKind() == ElementKind.ENUM) {
+                return new String[]{"bundle.putString($S, $L)", ".name()"};
+            } else {
+                for (TypeMirror interfaceTypeMirror : argClass.getInterfaces()) {
+                    if (interfaceTypeMirror.toString().equals("android.os.Parcelable")) {
+                        return new String[]{"bundle.putParcelable($S, $L)"};
+                    } else if (interfaceTypeMirror.toString().equals(Serializable.class.getCanonicalName())) {
+                        return new String[]{"bundle.putSerializable($S, $L)"};
+                    } else if (interfaceTypeMirror.toString().equals("android.os.IBinder")) {
+                        return new String[]{"bundle.putBinder($S, $L)"};
+                    }
                 }
             }
         }

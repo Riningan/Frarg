@@ -77,6 +77,8 @@ public class FrargBinder {
             return getPrimitiveValue(field, bundle);
         } else if (field.getType().isArray()) {
             return getArrayValue(field, bundle);
+        } else if (field.getType().isEnum()) {
+            return getEnumValue(field, bundle);
         } else if (field.getType() == ArrayList.class) {
             return getArrayListValue(field, bundle);
         } else if (field.getType() == SparseArray.class) {
@@ -171,6 +173,16 @@ public class FrargBinder {
                     return bundle.getParcelableArray(argName);
                 }
             }
+        }
+        throw new RuntimeException("Unsuported argument type for field " + argName);
+    }
+
+    private static Object getEnumValue(Field field, Bundle bundle) {
+        Class type = field.getType();
+        String argName = field.getName();
+        if (type.isEnum()) {
+            String name = bundle.getString(argName);
+            return Enum.valueOf((Class<Enum>) type, name);
         }
         throw new RuntimeException("Unsuported argument type for field " + argName);
     }

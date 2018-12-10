@@ -17,12 +17,11 @@ public class FragmentA extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_a, container);
+        return inflater.inflate(R.layout.fragment_a, container, false);
     }
 }

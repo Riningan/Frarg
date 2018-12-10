@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -13,28 +14,28 @@
             android:id="@+id/btn1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fragment A"
+            android:text="fragA"
             tools:ignore="ButtonStyle,HardcodedText" />
 
         <Button
             android:id="@+id/btn2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fragment B"
+            android:text="fragB"
             tools:ignore="ButtonStyle,HardcodedText" />
 
         <Button
             android:id="@+id/btn3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fragment C"
+            android:text="fragC"
             tools:ignore="ButtonStyle,HardcodedText" />
 
         <Button
             android:id="@+id/btn4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fragment D"
+            android:text="fragD"
             tools:ignore="ButtonStyle,HardcodedText" />
 
     </LinearLayout>
