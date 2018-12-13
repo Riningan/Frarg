@@ -1,4 +1,7 @@
 # Frarg
+
+[ ![Download](https://api.bintray.com/packages/riningan/AndroidMaven/Frarg/images/download.svg) ](https://bintray.com/riningan/AndroidMaven/Frarg/_latestVersion)[ ![Download](https://api.bintray.com/packages/riningan/AndroidMaven/Frarg-annotations/images/download.svg) ](https://bintray.com/riningan/AndroidMaven/Frarg-annotations/_latestVersion)[ ![Download](https://api.bintray.com/packages/riningan/AndroidMaven/Frarg-processor/images/download.svg) ](https://bintray.com/riningan/AndroidMaven/Frarg-processor/_latestVersion)
+
 New fragment instance generator
 
 
