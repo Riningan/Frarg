@@ -22,9 +22,9 @@ How to use it
 
 ```groovy
 dependencies {
-    implementation 'com.riningan.frarg:frarg:1.0'
-    implementation 'com.riningan.frarg:frarg-annotations:1.0'
-    annotationProcessor 'com.riningan.frarg:frarg-processor:1.0'
+    implementation 'com.riningan.frarg:frarg:1.1'
+    implementation 'com.riningan.frarg:frarg-annotations:1.1'
+    annotationProcessor 'com.riningan.frarg:frarg-processor:1.1'
 }
 ```
 
@@ -187,6 +187,71 @@ public class FooFragment extends Fragment {
     }
 }
 ```
+
+### Fragment with optional arguments (new in version 1.1)
+
+Add parameter *optional* to **@Argument** annotation.
+
+For example:
+
+```java
+@ArgumentedFragment
+public class FooFragment extends Fragment {
+    @Argument(optional = true)
+    String mArgumentString = null;
+}
+```
+
+In this case *Frarg* generate argument class:
+
+```java
+public final class FooFragmentArgs {
+  public String mArgumentString;
+
+  public boolean mArgumentStringInitialized;
+
+  public FooFragmentArgs(String mArgumentString) {
+    this.mArgumentString = mArgumentString;
+    this.mArgumentStringInitialized = true;
+  }
+
+  public FooFragmentArgs() {
+  }
+}
+```
+
+if argument passed to **FooFragmentArgs** constructor, it will received in **FrargBinder.bind**.
+
+**Beware if using more than one optional argument with the same type. In this case *Frarg* generate argument class:**
+
+```java
+public final class FooFragmentArgs {
+  public String mArgumentString1;
+
+  public boolean mArgumentString1Initialized;
+
+  public String mArgumentString2;
+
+  public boolean mArgumentString2Initialized;
+
+  public FooFragmentArgs(String mArgumentString1, String mArgumentString2) {
+    this.mArgumentString1 = mArgumentString1;
+    this.mArgumentString1Initialized = true;
+    this.mArgumentString2 = mArgumentString2;
+    this.mArgumentString2Initialized = true;
+  }
+
+  public FooFragmentArgs(String mArgumentString1) {
+    this.mArgumentString1 = mArgumentString1;
+    this.mArgumentString1Initialized = true;
+  }
+
+  public FooFragmentArgs() {
+  }
+}
+```
+
+Only one value will be passed as argument.
 
 ## 3. Using
 
