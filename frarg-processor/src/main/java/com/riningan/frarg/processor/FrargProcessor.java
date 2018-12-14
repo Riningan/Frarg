@@ -3,13 +3,14 @@ package com.riningan.frarg.processor;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
 
-import com.riningan.frarg.annotations.Argument;
 import com.riningan.frarg.annotations.ArgumentedFragment;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.BufferedWriter;
@@ -18,8 +19,6 @@ import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -41,6 +40,7 @@ import javax.tools.JavaFileObject;
 public class FrargProcessor extends AbstractProcessor {
     private static final String PACKAGE_NAME = FrargProcessor.class.getPackage().getName();
 
+
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
@@ -57,104 +57,74 @@ public class FrargProcessor extends AbstractProcessor {
         if (annotations.isEmpty()) {
             return false;
         }
-
-        ArrayList<MethodSpec> methods = new ArrayList<>();
-        Set<? extends Element> fragmentElements = roundEnvironment.getElementsAnnotatedWith(ArgumentedFragment.class);
-        for (Element fragmentElement : fragmentElements) {
-            try {
-                // collect arguments
-                ArrayList<Element> fragmentArgs = new ArrayList<>();
-                for (Element subFragmentElement : fragmentElement.getEnclosedElements()) {
-                    if (subFragmentElement.getAnnotation(Argument.class) != null) {
-                        fragmentArgs.add(subFragmentElement);
-                    }
-                }
-                FragmentFields fragmentFields = parseFragmentElement(fragmentElement);
-                ClassName fragmentClassName = fragmentFields.className;
-                String fragmentAlias = fragmentFields.alias;
-                // create newInstance method
-                methods.add(createNewInstanceMethodWithAllArgs(fragmentClassName, fragmentAlias, fragmentArgs));
-                if (fragmentArgs.size() > 0) {
-                    // create arg class
-                    createArgClass(fragmentArgs, fragmentAlias);
-                    // create newInstance method with arg class
-                    methods.add(createNewInstanceMethodWithArgClass(fragmentClassName, fragmentAlias, fragmentArgs));
-                }
-            } catch (BadAliasException | IOException | BadArgException e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-                return false;
-            }
-        }
-        // create builder class
         try {
-            TypeSpec fragmentBuilderClass = TypeSpec.classBuilder("FragmentBuilder")
-                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                    .addMethods(methods)
-                    .build();
-            createClassFile(fragmentBuilderClass);
-        } catch (IOException e) {
+            process(roundEnvironment);
+            return true;
+        } catch (IOException | BadAliasException | BadArgException e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             return false;
         }
-        return true;
-    }
-
-    private FragmentFields parseFragmentElement(Element fragmentElement) throws BadAliasException {
-        String argumentedCls = fragmentElement.getAnnotation(ArgumentedFragment.class).toString();
-        Pattern p = Pattern.compile("@" + ArgumentedFragment.class.getCanonicalName() + "\\(alias=(.*), fragmentClass=" + "(.*)\\.(.*)\\)");
-        Matcher matcher = p.matcher(argumentedCls);
-        matcher.find();
-        String argumentedClassAlias = matcher.group(1);
-        String argumentedClassPackage = matcher.group(2);
-        String argumentedClassSimple = matcher.group(3);
-        if (argumentedClassAlias.length() > 0 && !argumentedClassAlias.matches("[a-zA-Z][a-zA-Z0-9]*")) {
-            throw new BadAliasException(argumentedClassAlias, fragmentElement);
-        }
-        if (argumentedClassPackage.equals("java.lang") && argumentedClassSimple.equals("Object")) {
-            return new FragmentFields(ClassName.get((TypeElement) fragmentElement), argumentedClassAlias);
-        } else {
-            return new FragmentFields(ClassName.get(argumentedClassPackage, argumentedClassSimple), argumentedClassAlias);
-        }
     }
 
 
-    private MethodSpec createNewInstanceMethodWithArgClass(ClassName fragmentClassName, String fragmentAlias, ArrayList<Element> fragmentArgs) {
-        String newInstanceMethodName = "new" + fragmentAlias + "Instance";
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(newInstanceMethodName)
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addParameter(ClassName.get(PACKAGE_NAME, fragmentAlias + "Args"), "args")
-                .returns(fragmentClassName);
-        methodBuilder.addCode("return $N(", newInstanceMethodName);
-        for (int i = 0; i < fragmentArgs.size(); i++) {
-            String argName = fragmentArgs.get(i).getSimpleName().toString();
-            if (i == 0) {
-                methodBuilder.addCode("args." + argName);
-            } else {
-                methodBuilder.addCode("\n, args." + argName);
+    private void process(RoundEnvironment roundEnvironment) throws BadAliasException, BadArgException, IOException {
+        ArrayList<MethodSpec> methods = new ArrayList<>();
+        Set<? extends Element> fragmentElements = roundEnvironment.getElementsAnnotatedWith(ArgumentedFragment.class);
+        for (Element fragmentElement : fragmentElements) {
+            FragmentOptions fragmentOptions = new FragmentOptions(fragmentElement);
+            // create newInstance method
+            methods.add(createNewInstanceMethodWithAllArgs(fragmentOptions));
+            // create arg class if arg count not zero
+            if (fragmentOptions.argElements.size() > 0) {
+                // create arg class
+                createArgClass(fragmentOptions);
+                // create newInstance method with arg class
+                methods.add(createNewInstanceMethodWithArgClass(fragmentOptions));
             }
         }
-        methodBuilder.addCode(");\n");
+        // create builder class
+        TypeSpec fragmentBuilderClass = TypeSpec.classBuilder("FragmentBuilder")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addMethods(methods)
+                .build();
+        createClassFile(fragmentBuilderClass);
+    }
+
+
+    private MethodSpec createNewInstanceMethodWithAllArgs(FragmentOptions fragmentOptions) throws BadArgException {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(fragmentOptions.getNewInstanceMethodName())
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(fragmentOptions.className);
+        for (Element fragmentArg : fragmentOptions.argElements) {
+            methodBuilder.addParameter(ClassName.get(fragmentArg.asType()), fragmentArg.getSimpleName().toString());
+        }
+        methodBuilder.addStatement("$T fragment = new $T()", fragmentOptions.className, fragmentOptions.className)
+                .addStatement("android.os.Bundle bundle = new android.os.Bundle()");
+        for (Element fragmentArg : fragmentOptions.argElements) {
+            String[] arg = addArg(fragmentArg);
+            String argName = fragmentArg.getSimpleName().toString();
+            methodBuilder.addStatement(arg[0], argName, argName + (arg.length == 1 ? "" : arg[1]));
+        }
+        methodBuilder.addStatement("fragment.setArguments(bundle)")
+                .addStatement("return fragment");
         return methodBuilder.build();
     }
 
-    private MethodSpec createNewInstanceMethodWithAllArgs(ClassName fragmentClassName, String fragmentAlias, ArrayList<Element> fragmentArgs) throws BadArgException {
-        String newInstanceMethodName = "new" + fragmentAlias + "Instance";
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(newInstanceMethodName)
+    private MethodSpec createNewInstanceMethodWithArgClass(FragmentOptions fragmentOptions) throws BadArgException {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(fragmentOptions.getNewInstanceMethodName())
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .returns(fragmentClassName);
-        for (Element fragmentArg : fragmentArgs) {
-            methodBuilder.addParameter(ClassName.get(fragmentArg.asType()), fragmentArg.getSimpleName().toString());
-        }
-        methodBuilder.addStatement("$T fragment = new $T()", fragmentClassName, fragmentClassName)
+                .addParameter(ClassName.get(PACKAGE_NAME, fragmentOptions.classAlias + "Args"), "args")
+                .returns(fragmentOptions.className)
+                .addStatement("$T fragment = new $T()", fragmentOptions.className, fragmentOptions.className)
                 .addStatement("android.os.Bundle bundle = new android.os.Bundle()");
-        for (Element fragmentArg : fragmentArgs) {
+        for (Element fragmentArg : fragmentOptions.argElements) {
             String[] arg = addArg(fragmentArg);
             String argName = fragmentArg.getSimpleName().toString();
-            if (arg.length == 1) {
-                methodBuilder.addStatement(arg[0], argName, argName);
-            } else {
-                methodBuilder.addStatement(arg[0], argName, argName + arg[1]);
-            }
+            methodBuilder.addCode(CodeBlock.builder()
+                    .beginControlFlow("if (args.$NInitialized)", argName)
+                    .addStatement(arg[0], argName, "args." + argName + (arg.length == 1 ? "" : arg[1]))
+                    .endControlFlow()
+                    .build());
         }
         methodBuilder.addStatement("fragment.setArguments(bundle)")
                 .addStatement("return fragment");
@@ -162,26 +132,62 @@ public class FrargProcessor extends AbstractProcessor {
     }
 
 
-    private void createArgClass(ArrayList<Element> fragmentArgs, String fragmentClassSimpleName) throws IOException {
-        ArrayList<FieldSpec> fields = new ArrayList<>();
-        for (Element fragmentArg : fragmentArgs) {
-            fields.add(FieldSpec.builder(ClassName.get(fragmentArg.asType()), fragmentArg.getSimpleName().toString())
+    private void createArgClass(FragmentOptions fragmentOptions) throws IOException {
+        // create class
+        TypeSpec.Builder argClassBuilder = TypeSpec.classBuilder(fragmentOptions.classAlias + "Args")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        // add fields
+        for (Element fragmentArg : fragmentOptions.argElements) {
+            String fieldName = fragmentArg.getSimpleName().toString();
+            argClassBuilder.addField(FieldSpec
+                    .builder(ClassName.get(fragmentArg.asType()), fieldName)
+                    .addModifiers(Modifier.PUBLIC)
+                    .build());
+            argClassBuilder.addField(FieldSpec
+                    .builder(TypeName.BOOLEAN, fieldName + "Initialized")
                     .addModifiers(Modifier.PUBLIC)
                     .build());
         }
-        MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC);
-        for (Element fragmentArg : fragmentArgs) {
-            String argName = fragmentArg.getSimpleName().toString();
-            constructorBuilder.addParameter(ClassName.get(fragmentArg.asType()), argName)
-                    .addStatement("this.$N = $N", argName, argName);
+        // add constructors
+        ArrayList<ArrayList<TypeName>> createdArgsSequences = new ArrayList<>();
+        for (ArrayList<Element> argCombination : fragmentOptions.argCombinations) {
+            MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
+                    .addModifiers(Modifier.PUBLIC);
+            ArrayList<TypeName> newArgsSequence = new ArrayList<>();
+            for (Element fragmentArg : argCombination) {
+                String argName = fragmentArg.getSimpleName().toString();
+                TypeName typeName = ClassName.get(fragmentArg.asType());
+                newArgsSequence.add(typeName);
+                constructorBuilder.addParameter(typeName, argName)
+                        .addStatement("this.$N = $N", argName, argName)
+                        .addStatement("this.$NInitialized = $N", argName, "true");
+            }
+            // check arg sequence repeat
+            boolean newTypesSequence = true;
+            for (ArrayList<TypeName> createdArgsSequence : createdArgsSequences) {
+                if (createdArgsSequence.size() != newArgsSequence.size()) {
+                    continue;
+                }
+                newTypesSequence = false;
+                for (int i = 0; i < createdArgsSequence.size(); i++) {
+                    if (!createdArgsSequence.get(i).toString().equals(newArgsSequence.get(i).toString())) {
+                        newTypesSequence = true;
+                        break;
+                    }
+                }
+                if (newTypesSequence) {
+                    continue;
+                }
+                // repeat founded
+                newTypesSequence = false;
+                break;
+            }
+            if (newTypesSequence) {
+                createdArgsSequences.add(newArgsSequence);
+                argClassBuilder.addMethod(constructorBuilder.build());
+            }
         }
-        TypeSpec fragmentArgClass = TypeSpec.classBuilder(fragmentClassSimpleName + "Args")
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addFields(fields)
-                .addMethod(constructorBuilder.build())
-                .build();
-        createClassFile(fragmentArgClass);
+        createClassFile(argClassBuilder.build());
     }
 
 

@@ -4,7 +4,7 @@ sourceCompatibility = "1.7"
 targetCompatibility = "1.7"
 
 ext {
-    bintrayRepo = 'AndroidMaven'
+    bintrayRepo = project.property('library.bintrayRepo')
     bintrayName = 'Frarg-annotations'
     publishedGroupId = project.property('library.publishedGroupId')
     libraryName = 'Frarg-annotations'
@@ -19,9 +19,6 @@ ext {
     licenseName = project.property('library.licenseName')
     licenseUrl = project.property('library.licenseUrl')
     allLicenses = project.property('library.allLicenses')
-}
-
-dependencies {
 }
 
 apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
