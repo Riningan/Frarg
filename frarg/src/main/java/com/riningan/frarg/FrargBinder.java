@@ -49,7 +49,11 @@ public class FrargBinder {
         for (Field field : fields) {
             String argName = field.getName();
             if (!bundle.containsKey(argName)) {
-                throw new RuntimeException("Bundle doesn't contain value with key " + argName);
+                if (field.getAnnotation(Argument.class).optional()) {
+                    continue;
+                } else {
+                    throw new RuntimeException("Bundle doesn't contain value with key " + argName);
+                }
             }
             field.setAccessible(true);
             try {
@@ -108,9 +112,9 @@ public class FrargBinder {
             for (Class _interface : type.getInterfaces()) {
                 if (_interface == Parcelable.class) {
                     return bundle.getParcelable(argName);
-                } else if (type == Serializable.class) {
+                } else if (_interface == Serializable.class) {
                     return bundle.getSerializable(argName);
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && type == IBinder.class) {
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && _interface == IBinder.class) {
                     return bundle.getBinder(argName);
                 }
             }

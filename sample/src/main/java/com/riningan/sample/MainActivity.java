@@ -8,9 +8,11 @@ import android.view.View;
 
 import com.riningan.frarg.processor.FragmentBuilder;
 import com.riningan.frarg.processor.FragmentCArgs;
+import com.riningan.frarg.processor.FragmentEArgs;
 import com.riningan.frarg.processor.FragmentNotDArgs;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -24,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn2).setOnClickListener(this);
         findViewById(R.id.btn3).setOnClickListener(this);
         findViewById(R.id.btn4).setOnClickListener(this);
+        findViewById(R.id.btn5).setOnClickListener(this);
     }
 
     @Override
@@ -45,6 +48,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn4:
                 fragment = FragmentBuilder.newFragmentNotDInstance(new FragmentNotDArgs("param", 101, FragmentD.Arg.FIRST));
+                break;
+            case R.id.btn5:
+                fragment = FragmentBuilder.newFragmentEInstance(new FragmentEArgs(new Date(), 23));
                 break;
             default:
                 return;
